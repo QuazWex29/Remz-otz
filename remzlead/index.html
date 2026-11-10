@@ -1,0 +1,1337 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RemzLead</title>
+<meta name="description" content="RemzLead: заявки от живых клиентов для малого бизнеса с доставкой в Telegram. Тест на 10 заявок, замена брака, калькулятор стоимости. Связь: @remztest.">
+<meta property="og:title" content="RemzLead — заявки для бизнеса">
+<meta property="og:description" content="Заявки от живых клиентов прямо в ваш Telegram. Связь: @remztest.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231E54F0'/%3E%3Cpath d='M10 23V9h6.2c3 0 5 1.8 5 4.4 0 2-1.1 3.4-3 4l3.4 5.6h-3.6l-3-5.2h-1.8V23zm3.2-7.7h2.8c1.3 0 2.1-.7 2.1-1.8s-.8-1.8-2.1-1.8h-2.8z' fill='%23fff' fill-rule='evenodd'/%3E%3Ccircle cx='25.5' cy='6.5' r='4' fill='%23FFB21E'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700&display=swap">
+<style>
+:root {
+  /* Layout: диспетчерская заявок. Колонка 1160px; герой = заголовок + живая лента заявок в телефоне; секции чередуют фон, итоги калькулятора на инверсной панели */
+  --bg: #F1F4F9;
+  --surface: #FFFFFF;
+  --surface-2: #E5EBF4;
+  --chat-bg: #DCE4EF;
+  --ink: #0C1424;
+  --muted: #56627A;
+  --line: #D3DAE6;
+  --accent: #1E54F0;
+  --accent-hover: #1743C4;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCE5FF;
+  --signal: #FFB21E;
+  --signal-soft: rgba(255, 178, 30, .28);
+  --signal-ink: #241800;
+  --ok: #0F8A45;
+  --shadow: 0 1px 2px rgba(12, 20, 36, .06), 0 14px 36px -14px rgba(12, 20, 36, .22);
+  --sun: none;
+  --moon: block;
+
+  --f-display: "Unbounded", "Arial Black", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Golos Text", "Segoe UI", system-ui, -apple-system, Roboto, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --r-s: 10px;
+  --r-m: 14px;
+  --r-l: 22px;
+  --wrap: 1160px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #090E18;
+    --surface: #101828;
+    --surface-2: #141E31;
+    --chat-bg: #0C1322;
+    --ink: #E8EEF8;
+    --muted: #98A4BA;
+    --line: #243049;
+    --accent: #5D8BFF;
+    --accent-hover: #7FA3FF;
+    --accent-ink: #061233;
+    --accent-soft: #17264D;
+    --signal: #FFC24D;
+    --signal-soft: rgba(255, 194, 77, .22);
+    --signal-ink: #241800;
+    --ok: #3CD38A;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 18px 40px -18px rgba(0, 0, 0, .7);
+    --sun: block;
+    --moon: none;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #090E18;
+  --surface: #101828;
+  --surface-2: #141E31;
+  --chat-bg: #0C1322;
+  --ink: #E8EEF8;
+  --muted: #98A4BA;
+  --line: #243049;
+  --accent: #5D8BFF;
+  --accent-hover: #7FA3FF;
+  --accent-ink: #061233;
+  --accent-soft: #17264D;
+  --signal: #FFC24D;
+  --signal-soft: rgba(255, 194, 77, .22);
+  --signal-ink: #241800;
+  --ok: #3CD38A;
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 18px 40px -18px rgba(0, 0, 0, .7);
+  --sun: block;
+  --moon: none;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  height: env(safe-area-inset-top, 0px);
+  z-index: 60;
+  background: var(--bg);
+}
+img, svg { max-width: 100%; }
+a { color: inherit; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+h1, h2 { font-family: var(--f-display); font-weight: 700; letter-spacing: -.02em; line-height: 1.1; }
+h2 { font-size: clamp(26px, 3.4vw, 40px); }
+h3 { font-size: 18px; font-weight: 600; line-height: 1.3; }
+:focus-visible { outline: 3px solid var(--signal); outline-offset: 3px; }
+
+.wrap {
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+@media (min-width: 720px) {
+  .wrap {
+    padding-left: max(32px, env(safe-area-inset-left, 0px));
+    padding-right: max(32px, env(safe-area-inset-right, 0px));
+  }
+}
+.section { padding-block: clamp(56px, 8vw, 104px); scroll-margin-top: 64px; }
+.band { background: var(--surface-2); }
+.section-head { display: grid; gap: 14px; max-width: 760px; margin-bottom: clamp(28px, 4vw, 48px); }
+.eyebrow {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.lead-text { font-size: 18px; color: var(--muted); max-width: 62ch; }
+.small-note { margin-top: 20px; color: var(--muted); font-size: 15px; }
+.small-note a { color: var(--accent); font-weight: 600; }
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 50px;
+  padding: 0 24px;
+  border-radius: 999px;
+  border: 1.5px solid transparent;
+  font: 600 16px/1.2 var(--f-body);
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color .15s, border-color .15s, color .15s, transform .15s;
+}
+.btn:active { transform: translateY(1px); }
+.btn svg { width: 20px; height: 20px; flex: none; fill: currentColor; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--ink); }
+.btn-signal { background: var(--signal); color: var(--signal-ink); }
+.btn-signal:hover { filter: brightness(1.06); }
+.btn-sm { min-height: 40px; padding: 0 16px; font-size: 15px; }
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  z-index: 50;
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.header-inner { display: flex; align-items: center; gap: 16px; min-height: 64px; }
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -.02em;
+  flex: none;
+}
+.logo-mark { width: 32px; height: 32px; flex: none; }
+.lm-bg { fill: var(--accent); }
+.lm-r { fill: var(--accent-ink); }
+.lm-dot { fill: var(--signal); stroke: var(--bg); stroke-width: 2; }
+.logo-word { color: var(--ink); }
+.logo-word span { color: var(--accent); }
+.nav { display: flex; gap: 2px; margin-left: auto; }
+.nav a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 15px;
+}
+.nav a:hover { color: var(--ink); background: var(--surface-2); }
+.header-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+.icon-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.i-sun { display: var(--sun); }
+.i-moon { display: var(--moon); }
+.menu-btn { display: none; }
+@media (max-width: 920px) {
+  .nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    gap: 0;
+    margin: 0;
+    padding-top: 8px;
+    padding-bottom: 16px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+  .nav a { padding: 14px 8px; font-size: 17px; border-radius: 0; border-bottom: 1px solid var(--line); }
+  .nav a:last-child { border-bottom: 0; }
+  .menu-open .nav { display: flex; }
+  .menu-btn { display: grid; }
+  .header-actions { margin-left: auto; }
+}
+@media (max-width: 440px) { .header-cta { display: none; } }
+
+/* Hero */
+.hero { padding-block: clamp(36px, 6vw, 80px) clamp(48px, 7vw, 96px); }
+.hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
+  gap: clamp(36px, 5vw, 72px);
+  align-items: center;
+}
+@media (max-width: 920px) { .hero-grid { grid-template-columns: minmax(0, 1fr); } }
+.hero-copy { display: grid; gap: 22px; align-content: start; min-width: 0; }
+.hero h1 { font-size: clamp(32px, 5.2vw, 62px); line-height: 1.06; letter-spacing: -.03em; }
+.mark {
+  background: linear-gradient(to top, transparent 4%, var(--signal) 4%, var(--signal) 32%, transparent 32%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  padding-inline: .04em;
+}
+.hero-sub { font-size: clamp(17px, 1.5vw, 19px); color: var(--muted); max-width: 54ch; }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.hero-facts {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 22px 0 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 36px;
+}
+.hero-facts li { display: grid; gap: 2px; }
+.hero-facts b {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.hero-facts span { font-weight: 600; }
+
+/* Phone with lead feed */
+.phone-wrap { display: grid; justify-items: center; gap: 12px; min-width: 0; }
+.phone {
+  width: min(100%, 372px);
+  padding: 10px;
+  border-radius: 30px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.phone-screen { border-radius: 22px; overflow: hidden; background: var(--chat-bg); }
+.phone-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+.bot-ava {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 700 15px/1 var(--f-display);
+  flex: none;
+}
+.phone-top b { display: block; font-size: 15px; line-height: 1.2; }
+.phone-top small { font-size: 12px; color: var(--ok); }
+.feed {
+  list-style: none;
+  margin: 0;
+  padding: 12px;
+  height: 408px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 10px;
+  overflow: hidden;
+}
+.lead {
+  flex: none;
+  max-width: 92%;
+  padding: 11px 14px 12px;
+  border-radius: 16px 16px 16px 4px;
+  background: var(--surface);
+  box-shadow: 0 1px 1px var(--line);
+  font-size: 14px;
+  line-height: 1.45;
+}
+.lead.is-new { animation: lead-in .5s cubic-bezier(.2, .8, .2, 1); }
+@keyframes lead-in { from { transform: translateY(18px) scale(.98); opacity: .3; } to { transform: none; opacity: 1; } }
+.lead-head { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; }
+.lead-head time { margin-left: auto; font: 400 11px/1 var(--f-mono); color: var(--muted); padding-left: 8px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 3px var(--signal-soft); flex: none; }
+.lead-q { margin: 6px 0 8px; }
+.lead-meta { display: grid; grid-template-columns: auto 1fr; gap: 1px 12px; margin: 0; font-size: 12.5px; }
+.lead-meta dt { color: var(--muted); }
+.lead-meta dd { margin: 0; font-family: var(--f-mono); font-size: 12px; }
+.phone-caption { font-size: 13px; color: var(--muted); text-align: center; }
+
+/* Ticker */
+.ticker { overflow: hidden; background: var(--ink); color: var(--bg); padding-block: 15px; }
+.ticker-track { display: flex; width: max-content; animation: marquee 48s linear infinite; }
+.ticker-track span {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  padding-right: 22px;
+  white-space: nowrap;
+  font: 500 15px/1.2 var(--f-display);
+}
+.ticker-track span::after { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--signal); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .ticker-track { animation: none; } }
+
+/* Steps */
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 36px 28px;
+}
+@media (max-width: 960px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.step { position: relative; display: grid; gap: 10px; align-content: start; padding-top: 26px; border-top: 2px solid var(--line); }
+.step::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 3px solid var(--accent);
+}
+.step:last-child::before { background: var(--signal); border-color: var(--signal); }
+.step-n { font: 500 13px/1 var(--f-mono); color: var(--accent); letter-spacing: .06em; }
+.step p { color: var(--muted); font-size: 15px; }
+
+/* Niches */
+.niches { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 960px) { .niches { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .niches { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.niche {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-m);
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color .15s, transform .15s;
+}
+.niche:hover { border-color: var(--accent); transform: translateY(-2px); }
+.niche-name { font-weight: 600; min-width: 0; }
+.niche-price { font: 500 14px/1.4 var(--f-mono); color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 520px) {
+  .niche { flex-direction: column; gap: 4px; padding: 14px; }
+}
+
+/* Calculator */
+.calc { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 20px; align-items: start; }
+@media (max-width: 920px) { .calc { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-l); padding: clamp(20px, 3vw, 32px); min-width: 0; }
+.calc-controls { display: grid; gap: 28px; margin: 0; }
+.field { display: grid; gap: 10px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.field-row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+label, .label { font-weight: 600; font-size: 15px; padding: 0; }
+.hint { font-size: 13px; color: var(--muted); }
+.val { font: 500 16px/1 var(--f-mono); font-variant-numeric: tabular-nums; }
+select, input[type="text"], input[type="number"], textarea {
+  width: 100%;
+  min-height: 50px;
+  padding: 11px 14px;
+  border-radius: var(--r-s);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+}
+select:hover, input[type="text"]:hover, input[type="number"]:hover, textarea:hover { border-color: var(--muted); }
+textarea { min-height: 112px; resize: vertical; }
+input[type="range"] { width: 100%; height: 28px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { position: relative; }
+.chip input { position: absolute; opacity: 0; pointer-events: none; }
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color .15s, color .15s, border-color .15s;
+}
+.chip span:hover { border-color: var(--ink); }
+.chip input:checked + span { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip input:focus-visible + span { outline: 3px solid var(--signal); outline-offset: 2px; }
+.tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font: 500 12px/1.2 var(--f-mono);
+  vertical-align: 2px;
+}
+.tag[hidden] { display: none; }
+
+.result {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+  display: grid;
+  gap: 22px;
+}
+@media (min-width: 921px) { .result { position: sticky; top: calc(84px + env(safe-area-inset-top, 0px)); } }
+.result-label { font: 500 12px/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.result-price { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; }
+.result-price strong { font: 700 clamp(40px, 5vw, 56px)/1 var(--f-display); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.result-old { font: 400 17px/1 var(--f-mono); opacity: .55; }
+.rows { margin: 0; display: grid; }
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid color-mix(in srgb, var(--bg) 16%, transparent);
+}
+.row dt { opacity: .75; }
+.row dd { margin: 0; font: 500 15px/1.6 var(--f-mono); font-variant-numeric: tabular-nums; text-align: right; }
+.row.hl dd { color: var(--signal); }
+.bars { display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 84px minmax(0, 1fr); align-items: center; gap: 12px; font-size: 13px; }
+.bar > span { opacity: .75; }
+.bar-track { height: 10px; border-radius: 5px; background: color-mix(in srgb, var(--bg) 14%, transparent); overflow: hidden; }
+.bar-fill { height: 100%; width: 0; border-radius: 5px; background: var(--bg); transition: width .35s ease; }
+.bar-fill.rev { background: var(--signal); }
+.result .btn { width: 100%; }
+.result .note { font-size: 13px; opacity: .7; }
+
+/* Plans */
+.plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
+@media (max-width: 920px) { .plans { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  border-radius: var(--r-l);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  min-width: 0;
+}
+.plan.featured { border: 2px solid var(--accent); box-shadow: var(--shadow); }
+.plan-badge {
+  position: absolute;
+  top: -13px;
+  left: 26px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: 500 11px/1.2 var(--f-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.plan-name { font: 700 22px/1.2 var(--f-display); letter-spacing: -.02em; }
+.plan-vol { margin-top: 6px; font: 400 14px/1.4 var(--f-mono); color: var(--muted); }
+.plan-price { display: grid; gap: 2px; padding-block: 16px; border-block: 1px solid var(--line); }
+.plan-price b { font: 700 30px/1.1 var(--f-display); letter-spacing: -.02em; }
+.plan-price span { font-size: 14px; color: var(--muted); }
+.plan ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 11px; flex: 1; align-content: start; }
+.plan li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 10px; font-size: 15px; }
+.plan li::before {
+  content: "";
+  width: 12px;
+  height: 7px;
+  margin-top: 6px;
+  border-left: 2px solid var(--ok);
+  border-bottom: 2px solid var(--ok);
+  transform: rotate(-45deg);
+}
+
+/* Perks */
+.perks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px 32px; }
+@media (max-width: 920px) { .perks { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .perks { grid-template-columns: minmax(0, 1fr); gap: 28px; } }
+.perk { display: grid; gap: 8px; align-content: start; padding-top: 18px; border-top: 2px solid var(--ink); }
+.perk p { color: var(--muted); font-size: 15px; }
+
+/* Order */
+.order { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(32px, 5vw, 64px); align-items: start; }
+@media (max-width: 920px) { .order { grid-template-columns: minmax(0, 1fr); } }
+.order-copy { display: grid; gap: 18px; align-content: start; min-width: 0; }
+.contact {
+  display: grid;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 20px;
+  border-radius: var(--r-m);
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.contact-line { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; }
+.tg-handle { font: 500 22px/1.2 var(--f-mono); user-select: all; -webkit-user-select: all; }
+.form { display: grid; gap: 18px; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 560px) { .form-grid { grid-template-columns: minmax(0, 1fr); } }
+.form .btn { width: 100%; }
+.out {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: var(--r-m);
+  border: 1.5px dashed var(--accent);
+  background: var(--bg);
+}
+.out pre {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 400 13.5px/1.6 var(--f-mono);
+}
+.out-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.out-actions .btn { flex: 1 1 200px; width: auto; }
+.status { font-size: 14px; color: var(--ok); min-height: 1.4em; }
+
+/* FAQ */
+.faq { max-width: 840px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:last-child { border-bottom: 1px solid var(--line); }
+.faq summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 0;
+  list-style: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 17px;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after {
+  content: "+";
+  flex: none;
+  font: 400 26px/1 var(--f-mono);
+  color: var(--accent);
+  transition: transform .2s;
+}
+.faq details[open] summary::after { transform: rotate(45deg); }
+.faq details p { padding-bottom: 22px; color: var(--muted); max-width: 68ch; }
+
+/* Footer */
+.site-footer { background: var(--ink); color: var(--bg); padding-block: 48px calc(48px + env(safe-area-inset-bottom, 0px)); }
+.footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 28px; }
+.footer-brand { display: grid; gap: 12px; }
+.site-footer .logo-word { color: var(--bg); }
+.site-footer .lm-dot { stroke: var(--ink); }
+.footer-muted { opacity: .7; font-size: 14px; }
+.footer-contact { display: grid; gap: 4px; }
+.footer-contact a { font: 500 20px/1.3 var(--f-mono); text-decoration: none; }
+.footer-contact a:hover { text-decoration: underline; }
+
+/* Floating Telegram button */
+.tg-float {
+  position: fixed;
+  right: calc(18px + env(safe-area-inset-right, 0px));
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: var(--shadow);
+  transition: transform .15s, background-color .15s;
+}
+.tg-float:hover { background: var(--accent-hover); transform: translateY(-2px); }
+.tg-float svg { width: 26px; height: 26px; fill: currentColor; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<header class="site-header" id="header">
+  <div class="wrap header-inner">
+    <a class="logo" href="#top" aria-label="RemzLead, на главную">
+      <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect class="lm-bg" width="32" height="32" rx="9"/><path class="lm-r" fill-rule="evenodd" d="M10 23V9h6.2c3 0 5 1.8 5 4.4 0 2-1.1 3.4-3 4l3.4 5.6h-3.6l-3-5.2h-1.8V23zm3.2-7.7h2.8c1.3 0 2.1-.7 2.1-1.8s-.8-1.8-2.1-1.8h-2.8z"/><circle class="lm-dot" cx="25.5" cy="6.5" r="4"/></svg>
+      <span class="logo-word">Remz<span>Lead</span></span>
+    </a>
+    <nav class="nav" id="nav" aria-label="Разделы сайта">
+      <a href="#how">Как работает</a>
+      <a href="#niches">Ниши</a>
+      <a href="#calc">Калькулятор</a>
+      <a href="#plans">Тарифы</a>
+      <a href="#faq">Вопросы</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Сменить тему">
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></svg>
+      </button>
+      <button class="icon-btn menu-btn" id="menu-toggle" type="button" aria-label="Меню" aria-expanded="false" aria-controls="nav">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <a class="btn btn-primary btn-sm header-cta" href="https://t.me/remztest" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 3.6 2.9 10.5c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 1.8 5.4c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.2-.5-1.8-1.6-1.4ZM8.9 13.6l9.3-5.9c.5-.3.8-.1.4.2l-7.6 6.9-.3 3.2z"/></svg>
+        Telegram
+      </a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <p class="eyebrow">Лидогенерация для малого бизнеса</p>
+        <h1>Заявки от <span class="mark">живых клиентов</span> прямо в&nbsp;ваш Telegram</h1>
+        <p class="hero-sub">RemzLead приводит людей, которые сами оставили контакты и описали задачу. Заявка приходит вам за секунды, и вы перезваниваете, пока клиент ещё выбирает.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="https://t.me/remztest" data-tg="Здравствуйте! Хочу получить 10 тестовых заявок." target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 3.6 2.9 10.5c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 1.8 5.4c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.2-.5-1.8-1.6-1.4ZM8.9 13.6l9.3-5.9c.5-.3.8-.1.4.2l-7.6 6.9-.3 3.2z"/></svg>
+            Получить тестовые заявки
+          </a>
+          <a class="btn btn-ghost" href="#calc">Рассчитать стоимость</a>
+        </div>
+        <ul class="hero-facts">
+          <li><b>Тест</b><span>10 заявок перед покупкой</span></li>
+          <li><b>Брак</b><span>замена за 24 часа</span></li>
+          <li><b>Доставка</b><span>Telegram, почта или CRM</span></li>
+        </ul>
+      </div>
+
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="phone-top">
+              <span class="bot-ava" aria-hidden="true">R</span>
+              <div><b>RemzLead Bot</b><small>в сети</small></div>
+            </div>
+            <ol class="feed" id="feed" aria-label="Пример ленты заявок"></ol>
+          </div>
+        </div>
+        <p class="phone-caption">Пример: так заявки приходят в Telegram-бот</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track" id="ticker"></div>
+  </div>
+
+  <section class="section" id="how">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Как это работает</p>
+        <h2>От первого сообщения до потока заявок за четыре шага</h2>
+      </div>
+      <ol class="steps">
+        <li class="step">
+          <span class="step-n">Шаг 1</span>
+          <h3>Пишете в Telegram</h3>
+          <p>Рассказываете о нише, городе и сколько заявок нужно в месяц. Ник для связи: @remztest.</p>
+        </li>
+        <li class="step">
+          <span class="step-n">Шаг 2</span>
+          <h3>Согласуем условия</h3>
+          <p>Фиксируем цену заявки, критерии качества и куда её доставлять.</p>
+        </li>
+        <li class="step">
+          <span class="step-n">Шаг 3</span>
+          <h3>Тест на 10 заявок</h3>
+          <p>Проверяете качество на малом объёме, прежде чем брать пакет.</p>
+        </li>
+        <li class="step">
+          <span class="step-n">Шаг 4</span>
+          <h3>Запускаем поток</h3>
+          <p>Заявки идут в реальном времени, брак заменяем без споров.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section band" id="niches">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Ниши</p>
+        <h2>Работаем с услугами, где клиент звонит сам</h2>
+        <p class="lead-text">Базовая цена одной заявки для городов-миллионников. Нажмите на нишу, и калькулятор посчитает пакет под ваш город.</p>
+      </div>
+      <div class="niches" id="niche-grid"></div>
+      <p class="small-note">Нет вашей ниши? <a href="https://t.me/remztest" data-tg="Здравствуйте! Моей ниши нет в списке, подберёте заявки?" target="_blank" rel="noopener">Напишите в Telegram</a>, подберём источник трафика.</p>
+    </div>
+  </section>
+
+  <section class="section" id="calc">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Калькулятор</p>
+        <h2>Сколько стоят заявки и сколько они принесут</h2>
+        <p class="lead-text">Двигайте ползунки: цена пересчитается сразу, вместе со скидкой за объём и примерной окупаемостью.</p>
+      </div>
+      <div class="calc">
+        <form class="panel calc-controls" id="calc-form">
+          <div class="field">
+            <label for="calc-niche">Ниша</label>
+            <select id="calc-niche"></select>
+          </div>
+          <fieldset class="field">
+            <legend class="label">Регион</legend>
+            <div class="chips" id="calc-region"></div>
+          </fieldset>
+          <div class="field">
+            <div class="field-row">
+              <label for="calc-qty">Заявок в пакете</label>
+              <span><output class="val" id="qty-out" for="calc-qty">50</output><span class="tag" id="disc-tag">−5%</span></span>
+            </div>
+            <input type="range" id="calc-qty" min="10" max="500" step="10" value="50">
+            <p class="hint">Скидка за объём: от 50 заявок 5%, от 100 заявок 10%, от 200 заявок 15%.</p>
+          </div>
+          <div class="field">
+            <div class="field-row">
+              <label for="calc-conv">Конверсия заявки в продажу</label>
+              <output class="val" id="conv-out" for="calc-conv">20%</output>
+            </div>
+            <input type="range" id="calc-conv" min="5" max="60" step="1" value="20">
+            <p class="hint">Какая доля заявок у вас обычно превращается в оплату.</p>
+          </div>
+          <div class="field">
+            <label for="calc-check">Средний чек, ₽</label>
+            <input type="number" id="calc-check" inputmode="numeric" min="0" step="1000" value="30000">
+          </div>
+        </form>
+
+        <aside class="panel result" aria-label="Результат расчёта">
+          <div>
+            <p class="result-label">Цена одной заявки</p>
+            <p class="result-price"><strong id="r-price">—</strong><s class="result-old" id="r-old" hidden></s></p>
+          </div>
+          <dl class="rows">
+            <div class="row"><dt>Пакет</dt><dd id="r-total">—</dd></div>
+            <div class="row"><dt>Скидка за объём</dt><dd id="r-disc">—</dd></div>
+            <div class="row"><dt>Ожидаемые продажи</dt><dd id="r-deals">—</dd></div>
+            <div class="row"><dt>Ожидаемая выручка</dt><dd id="r-rev">—</dd></div>
+            <div class="row hl"><dt>Окупаемость</dt><dd id="r-roi">—</dd></div>
+          </dl>
+          <div class="bars" aria-hidden="true">
+            <div class="bar"><span>Вложения</span><div class="bar-track"><div class="bar-fill" id="b-cost"></div></div></div>
+            <div class="bar"><span>Выручка</span><div class="bar-track"><div class="bar-fill rev" id="b-rev"></div></div></div>
+          </div>
+          <a class="btn btn-signal" id="calc-cta" href="https://t.me/remztest" target="_blank" rel="noopener">Обсудить расчёт в Telegram</a>
+          <p class="note">Расчёт ориентировочный. Реальная конверсия зависит от того, как быстро вы перезваниваете и как работает ваш отдел продаж.</p>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" id="plans">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Тарифы</p>
+        <h2>Начните с теста и масштабируйте, когда увидите результат</h2>
+      </div>
+      <div class="plans">
+        <article class="plan">
+          <div>
+            <h3 class="plan-name">Тест</h3>
+            <p class="plan-vol">10–49 заявок</p>
+          </div>
+          <p class="plan-price"><b>База</b><span>цена ниши по калькулятору</span></p>
+          <ul>
+            <li>Проверка качества на малом объёме</li>
+            <li>Доставка в Telegram-бот</li>
+            <li>Замена брака за 24 часа</li>
+          </ul>
+          <a class="btn btn-ghost" href="https://t.me/remztest" data-tg="Здравствуйте! Интересует тариф «Тест»." target="_blank" rel="noopener">Начать с теста</a>
+        </article>
+        <article class="plan featured">
+          <span class="plan-badge">Рекомендуем</span>
+          <div>
+            <h3 class="plan-name">Поток</h3>
+            <p class="plan-vol">50–199 заявок</p>
+          </div>
+          <p class="plan-price"><b>−5…10%</b><span>к базовой цене</span></p>
+          <ul>
+            <li>Всё из тарифа «Тест»</li>
+            <li>Доставка в CRM: amoCRM, Битрикс24</li>
+            <li>Отчёт по источникам раз в неделю</li>
+            <li>Пауза и смена города по запросу</li>
+          </ul>
+          <a class="btn btn-primary" href="https://t.me/remztest" data-tg="Здравствуйте! Интересует тариф «Поток»." target="_blank" rel="noopener">Подключить поток</a>
+        </article>
+        <article class="plan">
+          <div>
+            <h3 class="plan-name">Партнёр</h3>
+            <p class="plan-vol">от 200 заявок</p>
+          </div>
+          <p class="plan-price"><b>−15%</b><span>к базовой цене</span></p>
+          <ul>
+            <li>Всё из тарифа «Поток»</li>
+            <li>Личный менеджер в Telegram</li>
+            <li>Свои критерии качества заявки</li>
+            <li>Приоритет при запуске новых городов</li>
+          </ul>
+          <a class="btn btn-ghost" href="https://t.me/remztest" data-tg="Здравствуйте! Интересует тариф «Партнёр»." target="_blank" rel="noopener">Обсудить условия</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="why">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Почему RemzLead</p>
+        <h2>Вы платите за людей с задачей, а не за клики</h2>
+      </div>
+      <div class="perks">
+        <div class="perk">
+          <h3>Заявка уходит одному заказчику</h3>
+          <p>Мы не перепродаём контакты. Клиент, которого получили вы, не достанется конкуренту.</p>
+        </div>
+        <div class="perk">
+          <h3>Замена брака за 24 часа</h3>
+          <p>Неверный номер, дубль или запрос не по нише? Напишите нам, и мы бесплатно заменим заявку.</p>
+        </div>
+        <div class="perk">
+          <h3>Доставка за секунды</h3>
+          <p>Заявка приходит в Telegram-бот, на почту или в CRM сразу после того, как клиент её оставил.</p>
+        </div>
+        <div class="perk">
+          <h3>Тест перед покупкой</h3>
+          <p>10 заявок, чтобы оценить качество, прежде чем брать большой пакет.</p>
+        </div>
+        <div class="perk">
+          <h3>Прозрачные источники</h3>
+          <p>По каждой заявке видно источник, время и текст запроса клиента.</p>
+        </div>
+        <div class="perk">
+          <h3>Управление из Telegram</h3>
+          <p>Пауза, смена города или ниши, докупка пакета решаются одним сообщением.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band" id="order">
+    <div class="wrap order">
+      <div class="order-copy">
+        <p class="eyebrow">Заявка на заявки</p>
+        <h2>Соберите сообщение и отправьте его нам в Telegram</h2>
+        <p class="lead-text">Заполните пару полей. Сайт соберёт готовый текст, скопирует его и даст ссылку на чат с @remztest. Останется нажать «Отправить».</p>
+        <div class="contact">
+          <span class="label">Telegram для связи</span>
+          <div class="contact-line">
+            <span class="tg-handle">@remztest</span>
+            <button class="btn btn-ghost btn-sm" id="copy-handle" type="button">Скопировать ник</button>
+          </div>
+          <a class="btn btn-primary" href="https://t.me/remztest" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 3.6 2.9 10.5c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 1.8 5.4c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.2-.5-1.8-1.6-1.4ZM8.9 13.6l9.3-5.9c.5-.3.8-.1.4.2l-7.6 6.9-.3 3.2z"/></svg>
+            Открыть чат @remztest
+          </a>
+          <p class="status" id="handle-status" role="status"></p>
+        </div>
+      </div>
+
+      <form class="panel form" id="order-form">
+        <div class="form-grid">
+          <div class="field">
+            <label for="f-name">Как к вам обращаться</label>
+            <input type="text" id="f-name" name="name" autocomplete="name" placeholder="Например, Сергей" required>
+          </div>
+          <div class="field">
+            <label for="f-city">Город</label>
+            <input type="text" id="f-city" name="city" autocomplete="address-level2" placeholder="Например, Казань" required>
+          </div>
+          <div class="field">
+            <label for="f-niche">Ниша</label>
+            <select id="f-niche" name="niche"></select>
+          </div>
+          <div class="field">
+            <label for="f-volume">Заявок в месяц</label>
+            <select id="f-volume" name="volume">
+              <option>10–49, сначала тест</option>
+              <option selected>50–99</option>
+              <option>100–199</option>
+              <option>200 и больше</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-comment">Комментарий <span class="hint">(необязательно)</span></label>
+          <textarea id="f-comment" name="comment" placeholder="Например: нужны только заявки на ремонт под ключ, работаем по всему городу"></textarea>
+        </div>
+        <button class="btn btn-primary" type="submit">Собрать сообщение</button>
+        <div class="out" id="order-out" hidden>
+          <pre id="order-text"></pre>
+          <div class="out-actions">
+            <a class="btn btn-primary" id="order-open" href="https://t.me/remztest" target="_blank" rel="noopener">Открыть Telegram</a>
+            <button class="btn btn-ghost" id="order-copy" type="button">Скопировать текст</button>
+          </div>
+          <p class="status" id="order-status" role="status"></p>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <section class="section" id="faq">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">Вопросы</p>
+        <h2>Что обычно спрашивают перед стартом</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Откуда берутся заявки?</summary>
+          <p>Из рекламы в Яндекс Директе, VK Рекламе и Telegram Ads, а также с наших тематических сайтов. Человек сам оставляет контакты и описывает задачу. Холодных баз и обзвона нет.</p>
+        </details>
+        <details>
+          <summary>Заявку получаю только я?</summary>
+          <p>Да. Каждая заявка уходит одному заказчику, мы не перепродаём контакты.</p>
+        </details>
+        <details>
+          <summary>Что считается браком?</summary>
+          <p>Неверный или недоступный номер, дубль за последние 30 дней, запрос не по вашей нише или из другого города. Такие заявки мы заменяем бесплатно в течение 24 часов после вашего сообщения.</p>
+        </details>
+        <details>
+          <summary>Как я буду получать заявки?</summary>
+          <p>В Telegram через бота, на почту или сразу в CRM: amoCRM, Битрикс24 или любую другую систему с вебхуками.</p>
+        </details>
+        <details>
+          <summary>Сколько ждать первые заявки?</summary>
+          <p>Обычно запуск занимает 1–3 рабочих дня после того, как мы согласовали нишу, город и критерии качества.</p>
+        </details>
+        <details>
+          <summary>Как оплатить?</summary>
+          <p>Пакетами, по счёту или переводом. Сначала берёте тест на 10 заявок и только потом решаете, продолжать ли.</p>
+        </details>
+        <details>
+          <summary>Можно поставить поток на паузу?</summary>
+          <p>Да. Напишите в Telegram @remztest, и мы остановим поток. Неиспользованный остаток пакета сохранится.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-brand">
+      <a class="logo" href="#top" aria-label="RemzLead, наверх">
+        <svg class="logo-mark" viewBox="0 0 32 32" aria-hidden="true"><rect class="lm-bg" width="32" height="32" rx="9"/><path class="lm-r" fill-rule="evenodd" d="M10 23V9h6.2c3 0 5 1.8 5 4.4 0 2-1.1 3.4-3 4l3.4 5.6h-3.6l-3-5.2h-1.8V23zm3.2-7.7h2.8c1.3 0 2.1-.7 2.1-1.8s-.8-1.8-2.1-1.8h-2.8z"/><circle class="lm-dot" cx="25.5" cy="6.5" r="4"/></svg>
+        <span class="logo-word">Remz<span>Lead</span></span>
+      </a>
+      <p class="footer-muted">Заявки от живых клиентов для малого бизнеса.</p>
+    </div>
+    <div class="footer-contact">
+      <span class="footer-muted">Связь в Telegram</span>
+      <a href="https://t.me/remztest" target="_blank" rel="noopener">@remztest</a>
+    </div>
+    <p class="footer-muted">© <span id="year">2026</span> RemzLead</p>
+  </div>
+</footer>
+
+<a class="tg-float" href="https://t.me/remztest" target="_blank" rel="noopener" aria-label="Написать в Telegram @remztest">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.7 3.6 2.9 10.5c-1.2.5-1.2 1.2-.2 1.5l4.6 1.4 1.8 5.4c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.2-2.1 4.6 3.4c.8.5 1.4.2 1.6-.8l3-14.2c.3-1.2-.5-1.8-1.6-1.4ZM8.9 13.6l9.3-5.9c.5-.3.8-.1.4.2l-7.6 6.9-.3 3.2z"/></svg>
+</a>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ================== НАСТРОЙКИ ==================
+     Здесь меняются ник в Telegram, ниши, цены и скидки. */
+  var TELEGRAM = 'remztest';
+
+  // Базовая цена одной заявки (₽) для городов-миллионников
+  var NICHES = [
+    { name: 'Ремонт квартир', price: 450 },
+    { name: 'Натяжные потолки', price: 300 },
+    { name: 'Окна и балконы', price: 350 },
+    { name: 'Автосервис', price: 250 },
+    { name: 'Юридические услуги', price: 600 },
+    { name: 'Стоматология', price: 700 },
+    { name: 'Недвижимость', price: 800 },
+    { name: 'Клининг', price: 200 },
+    { name: 'Грузоперевозки', price: 220 },
+    { name: 'Курсы и обучение', price: 280 },
+    { name: 'Строительство домов', price: 1200 },
+    { name: 'Салоны красоты', price: 180 }
+  ];
+
+  // Коэффициент цены по региону
+  var REGIONS = [
+    { id: 'msk', name: 'Москва и МО', k: 1.3 },
+    { id: 'spb', name: 'Санкт-Петербург', k: 1.2 },
+    { id: 'mln', name: 'Города-миллионники', k: 1.0 },
+    { id: 'reg', name: 'Другие города', k: 0.85 },
+    { id: 'rf', name: 'Вся Россия', k: 0.9 }
+  ];
+
+  // Скидка за объём
+  function discountFor(qty) {
+    if (qty >= 200) return 0.15;
+    if (qty >= 100) return 0.10;
+    if (qty >= 50) return 0.05;
+    return 0;
+  }
+
+  // Примеры заявок для ленты в телефоне (не реальные люди)
+  var SAMPLE_LEADS = [
+    { niche: 'Ремонт квартир', q: 'Ремонт двушки 54 м² под ключ, старт в декабре', name: 'Алексей', city: 'Москва', phone: '+7 916 •••-••-47' },
+    { niche: 'Натяжные потолки', q: 'Три комнаты, нужен замер на выходных', name: 'Марина', city: 'Казань', phone: '+7 987 •••-••-12' },
+    { niche: 'Автосервис', q: 'Замена ремня ГРМ, Kia Rio 2017', name: 'Игорь', city: 'Санкт-Петербург', phone: '+7 921 •••-••-80' },
+    { niche: 'Юридические услуги', q: 'Раздел имущества, нужна консультация', name: 'Ольга', city: 'Екатеринбург', phone: '+7 912 •••-••-33' },
+    { niche: 'Стоматология', q: 'Имплант под ключ, интересует цена', name: 'Денис', city: 'Новосибирск', phone: '+7 913 •••-••-05' },
+    { niche: 'Окна и балконы', q: 'Два окна и остекление балкона, нужен замер', name: 'Светлана', city: 'Краснодар', phone: '+7 918 •••-••-61' },
+    { niche: 'Клининг', q: 'Уборка после ремонта, 70 м²', name: 'Анна', city: 'Москва', phone: '+7 903 •••-••-19' },
+    { niche: 'Грузоперевозки', q: 'Переезд двушки, 5 этаж без лифта', name: 'Павел', city: 'Самара', phone: '+7 927 •••-••-74' }
+  ];
+  /* ================================================ */
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var money = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 });
+  var dec1 = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 1 });
+  function rub(n) { return money.format(Math.round(n)) + ' ₽'; }
+  function tgLink(text) { return 'https://t.me/' + TELEGRAM + (text ? '?text=' + encodeURIComponent(text) : ''); }
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  /* Ссылки с готовым текстом для Telegram */
+  document.querySelectorAll('[data-tg]').forEach(function (a) {
+    a.href = tgLink(a.getAttribute('data-tg'));
+  });
+
+  /* Тема */
+  var root = document.documentElement;
+  var darkMq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  try {
+    var saved = localStorage.getItem('remz-theme');
+    if (saved === 'dark' || saved === 'light') root.setAttribute('data-theme', saved);
+  } catch (e) {}
+  function currentTheme() {
+    var t = root.getAttribute('data-theme');
+    if (t === 'dark' || t === 'light') return t;
+    return darkMq && darkMq.matches ? 'dark' : 'light';
+  }
+  $('theme-toggle').addEventListener('click', function () {
+    var next = currentTheme() === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next);
+    try { localStorage.setItem('remz-theme', next); } catch (e) {}
+  });
+
+  /* Мобильное меню */
+  var header = $('header');
+  var menuBtn = $('menu-toggle');
+  function setMenu(open) {
+    header.classList.toggle('menu-open', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  }
+  menuBtn.addEventListener('click', function () { setMenu(!header.classList.contains('menu-open')); });
+  $('nav').addEventListener('click', function (e) { if (e.target.closest('a')) setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setMenu(false); });
+
+  /* Бегущая строка */
+  var ticker = $('ticker');
+  for (var r = 0; r < 2; r++) {
+    NICHES.forEach(function (n) { ticker.appendChild(el('span', null, n.name)); });
+  }
+
+  /* Лента заявок в телефоне */
+  var feed = $('feed');
+  var leadIndex = 0;
+  function hhmm(minutesAgo) {
+    var d = new Date(Date.now() - minutesAgo * 60000);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function leadCard(lead, minutesAgo) {
+    var li = el('li', 'lead');
+    var head = el('div', 'lead-head');
+    head.appendChild(el('span', 'dot'));
+    head.appendChild(el('span', null, 'Новая заявка · ' + lead.niche));
+    head.appendChild(el('time', null, hhmm(minutesAgo)));
+    li.appendChild(head);
+    li.appendChild(el('p', 'lead-q', '«' + lead.q + '»'));
+    var dl = el('dl', 'lead-meta');
+    [['Имя', lead.name], ['Город', lead.city], ['Телефон', lead.phone]].forEach(function (p) {
+      dl.appendChild(el('dt', null, p[0]));
+      dl.appendChild(el('dd', null, p[1]));
+    });
+    li.appendChild(dl);
+    return li;
+  }
+  [9, 5, 1].forEach(function (ago) {
+    feed.appendChild(leadCard(SAMPLE_LEADS[leadIndex++ % SAMPLE_LEADS.length], ago));
+  });
+  if (!reduceMotion) {
+    setInterval(function () {
+      if (document.hidden) return;
+      var card = leadCard(SAMPLE_LEADS[leadIndex++ % SAMPLE_LEADS.length], 0);
+      card.classList.add('is-new');
+      feed.appendChild(card);
+      while (feed.children.length > 4) feed.removeChild(feed.firstElementChild);
+    }, 3400);
+  }
+
+  /* Ниши: сетка и списки */
+  var nicheGrid = $('niche-grid');
+  var calcNiche = $('calc-niche');
+  var formNiche = $('f-niche');
+  NICHES.forEach(function (n, i) {
+    var b = el('button', 'niche');
+    b.type = 'button';
+    b.appendChild(el('span', 'niche-name', n.name));
+    b.appendChild(el('span', 'niche-price', rub(n.price)));
+    b.addEventListener('click', function () {
+      calcNiche.value = String(i);
+      updateCalc();
+      $('calc').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+    });
+    nicheGrid.appendChild(b);
+
+    var o1 = el('option', null, n.name); o1.value = String(i); calcNiche.appendChild(o1);
+    var o2 = el('option', null, n.name); formNiche.appendChild(o2);
+  });
+  formNiche.appendChild(el('option', null, 'Другая ниша'));
+
+  /* Регионы */
+  var regionBox = $('calc-region');
+  REGIONS.forEach(function (rg, i) {
+    var lab = el('label', 'chip');
+    var inp = document.createElement('input');
+    inp.type = 'radio';
+    inp.name = 'region';
+    inp.id = 'region-' + rg.id;
+    inp.value = String(i);
+    if (rg.id === 'mln') inp.checked = true;
+    lab.appendChild(inp);
+    lab.appendChild(el('span', null, rg.name));
+    regionBox.appendChild(lab);
+  });
+
+  /* Калькулятор */
+  var qty = $('calc-qty'), conv = $('calc-conv'), check = $('calc-check');
+  var lastCalcText = '';
+  function updateCalc() {
+    var niche = NICHES[Number(calcNiche.value) || 0];
+    var checked = regionBox.querySelector('input:checked');
+    var region = REGIONS[checked ? Number(checked.value) : 2];
+    var q = Number(qty.value);
+    var c = Number(conv.value) / 100;
+    var avg = Math.max(0, Number(check.value) || 0);
+    var d = discountFor(q);
+
+    var full = Math.round(niche.price * region.k / 10) * 10;
+    var price = Math.round(full * (1 - d) / 10) * 10;
+    var total = price * q;
+    var deals = Math.round(q * c);
+    var revenue = deals * avg;
+    var roi = total > 0 ? revenue / total : 0;
+
+    $('qty-out').textContent = q;
+    $('conv-out').textContent = Math.round(c * 100) + '%';
+    var tag = $('disc-tag');
+    tag.hidden = d === 0;
+    tag.textContent = '−' + Math.round(d * 100) + '%';
+
+    $('r-price').textContent = rub(price);
+    var old = $('r-old');
+    old.hidden = d === 0;
+    old.textContent = rub(full);
+    $('r-total').textContent = q + ' × ' + rub(price) + ' = ' + rub(total);
+    $('r-disc').textContent = d ? Math.round(d * 100) + '% · ' + rub((full - price) * q) : 'нет';
+    $('r-deals').textContent = deals;
+    $('r-rev').textContent = rub(revenue);
+    $('r-roi').textContent = roi >= 0.05 ? 'в ' + dec1.format(roi) + ' раза' : '—';
+
+    var max = Math.max(total, revenue, 1);
+    $('b-cost').style.width = (total / max * 100) + '%';
+    $('b-rev').style.width = (revenue / max * 100) + '%';
+
+    lastCalcText = 'Здравствуйте! Посчитал заявки на сайте RemzLead:\n' +
+      'Ниша: ' + niche.name + '\n' +
+      'Регион: ' + region.name + '\n' +
+      'Количество: ' + q + ' заявок\n' +
+      'Цена заявки: ' + rub(price) + (d ? ' (скидка ' + Math.round(d * 100) + '%)' : '') + '\n' +
+      'Пакет: ' + rub(total) + '\n' +
+      'Хочу обсудить запуск.';
+    $('calc-cta').href = tgLink(lastCalcText);
+  }
+  [calcNiche, qty, conv, check].forEach(function (inp) {
+    inp.addEventListener('input', updateCalc);
+    inp.addEventListener('change', updateCalc);
+  });
+  regionBox.addEventListener('change', updateCalc);
+  $('calc-form').addEventListener('submit', function (e) { e.preventDefault(); });
+  updateCalc();
+
+  /* Копирование */
+  function selectText(node) {
+    try {
+      var range = document.createRange();
+      range.selectNodeContents(node);
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } catch (e) {}
+  }
+  function copyText(text, statusEl, okMsg, fallbackNode) {
+    function fail() {
+      if (fallbackNode) selectText(fallbackNode);
+      statusEl.textContent = 'Не получилось скопировать автоматически. Текст выделен, скопируйте его вручную.';
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { statusEl.textContent = okMsg; }, fail);
+    } else {
+      fail();
+    }
+  }
+  $('copy-handle').addEventListener('click', function () {
+    copyText('@' + TELEGRAM, $('handle-status'), 'Ник @' + TELEGRAM + ' скопирован.', document.querySelector('.tg-handle'));
+  });
+
+  /* Форма: собираем сообщение для Telegram */
+  var form = $('order-form');
+  var out = $('order-out');
+  var outText = $('order-text');
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var v = function (id) { return $(id).value.trim(); };
+    var lines = [
+      'Здравствуйте! Хочу заявки от RemzLead.',
+      'Имя: ' + v('f-name'),
+      'Город: ' + v('f-city'),
+      'Ниша: ' + v('f-niche'),
+      'Объём: ' + v('f-volume') + ' в месяц'
+    ];
+    if (v('f-comment')) lines.push('Комментарий: ' + v('f-comment'));
+    var text = lines.join('\n');
+    outText.textContent = text;
+    $('order-open').href = tgLink(text);
+    out.hidden = false;
+    copyText(text, $('order-status'), 'Текст скопирован. Откройте Telegram и отправьте его в чат @' + TELEGRAM + '.', outText);
+    out.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+  });
+  $('order-copy').addEventListener('click', function () {
+    copyText(outText.textContent, $('order-status'), 'Текст скопирован.', outText);
+  });
+
+  $('year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
